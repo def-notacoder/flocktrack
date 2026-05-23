@@ -25,9 +25,13 @@ if (-not $authOk) {
 }
 
 $user = gh api user --jq '.login'
-$email = gh api user/emails --jq '.[] | select(.primary==true) | .email' 2>$null
+try {
+  $email = gh api user/emails --jq '.[] | select(.primary==true) | .email' 2>$null
+} catch {
+  $email = $null
+}
 if (-not $email) {
-  $email = gh api user --jq '.id' | ForEach-Object { "$user@users.noreply.github.com" }
+  $email = "$user@users.noreply.github.com"
 }
 
 $name = gh api user --jq '.name'

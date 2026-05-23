@@ -23,7 +23,8 @@ docker compose version
 ## First-time setup
 
 ```powershell
-cd C:\Users\butte\Projects\flocktrack
+git clone https://github.com/def-notacoder/flocktrack.git
+cd flocktrack
 copy .env.example .env
 docker compose up -d
 npm install

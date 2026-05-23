@@ -55,6 +55,21 @@ const fromEggSchema = z.object({
   }),
 });
 
+const updateChickenSchema = z.object({
+  body: z.object({
+    photo: z.string().optional(),
+    clearPhoto: z.boolean().optional(),
+    tagNumber: z.string().min(1).optional(),
+    name: z.string().optional(),
+    colorMarking: z.string().optional(),
+    sex: z.enum(["HEN", "ROOSTER", "UNKNOWN"]).optional(),
+    breed: z.string().optional(),
+    notes: z.string().optional(),
+    lifeStage: z.enum(["CHICK", "PULLET", "ADULT"]).optional(),
+    poultryLabel: z.string().min(1).optional(),
+  }),
+});
+
 chickensRouter.get("/", async (req, res, next) => {
   try {
     const q = (req.query.q as string)?.trim();
@@ -300,20 +315,10 @@ chickensRouter.get("/:id/timeline", async (req, res, next) => {
   }
 });
 
-chickensRouter.patch("/:id", async (req, res, next) => {
+chickensRouter.patch("/:id", validate(updateChickenSchema), async (req, res, next) => {
   try {
-    const { photo, clearPhoto, ...fields } = req.body as {
-      photo?: string;
-      clearPhoto?: boolean;
-      tagNumber?: string;
-      name?: string;
-      colorMarking?: string;
-      sex?: string;
-      breed?: string;
-      notes?: string;
-      lifeStage?: string;
-      poultryLabel?: string;
-    };
+    const { body } = (req as ValidatedRequest<z.infer<typeof updateChickenSchema>>).validated;
+    const { photo, clearPhoto, ...fields } = body;
 
     let photoUrl: string | null | undefined;
     if (clearPhoto) {

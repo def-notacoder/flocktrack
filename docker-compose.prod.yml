@@ -7,8 +7,6 @@ services:
       POSTGRES_USER: flocktrack
       POSTGRES_PASSWORD: flocktrack
       POSTGRES_DB: flocktrack
-    ports:
-      - "5432:5432"
     volumes:
       - flocktrack_pg:/var/lib/postgresql/data
     healthcheck:

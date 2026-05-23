@@ -41,6 +41,26 @@ npm run dev
 - App: http://localhost:5173
 - API: http://localhost:3001/api/health
 
+## Development in Dev Container
+
+This repository includes a complete devcontainer setup in `.devcontainer/`.
+
+1. Open the project in VS Code.
+2. Run **Dev Containers: Reopen in Container**.
+3. After the container is ready, run:
+
+```bash
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+Inside the container:
+
+- App: http://localhost:5173
+- API: http://localhost:3001/api/health
+- DB host: `postgres` (already configured by `DATABASE_URL`)
+
 ## Production build
 
 ```powershell
@@ -49,6 +69,26 @@ npm run start
 ```
 
 Serves the built client from the API on port 3001.
+
+## Production in Docker (Full Stack)
+
+Build and run API + client + PostgreSQL entirely in Docker:
+
+```bash
+npm run docker:prod:up
+```
+
+Then open:
+
+- App/API: http://localhost:3001
+- Health: http://localhost:3001/api/health
+
+Useful commands:
+
+```bash
+npm run docker:prod:logs
+npm run docker:prod:down
+```
 
 ## Features
 

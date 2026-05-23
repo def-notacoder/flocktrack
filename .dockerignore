@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.gitignore
+.env
+npm-debug.log*
+*.log
+uploads
+server/uploads
+client/dev-dist
+.vscode
+.devcontainer

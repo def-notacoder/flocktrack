@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: flocktrack-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flocktrack
+      POSTGRES_PASSWORD: flocktrack
+      POSTGRES_DB: flocktrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - flocktrack_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flocktrack -d flocktrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  flocktrack_pg:

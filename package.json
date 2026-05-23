@@ -1,0 +1,33 @@
+{
+  "name": "flocktrack",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:generate": "prisma generate",
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client && npm run build -w server",
+    "start": "npm run start -w server",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "devDependencies": {
+    "@prisma/adapter-pg": "^6.8.2",
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.5.0",
+    "pg": "^8.16.0",
+    "png-to-ico": "^3.0.1",
+    "prisma": "^6.8.2",
+    "sharp": "^0.34.5",
+    "tsx": "^4.19.4"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
+  }
+}

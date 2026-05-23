@@ -1,0 +1,313 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum HatchStatus {
+  INCUBATING
+  LOCKDOWN
+  HATCHING
+  COMPLETED
+  CANCELLED
+}
+
+enum HatchEggStatus {
+  INCUBATING
+  LOCKDOWN
+  HATCHING
+  HATCHED
+  NOT_VIABLE
+  FAILED_HATCH
+  DISCARDED
+}
+
+enum DevelopmentAssessment {
+  DEVELOPING_WELL
+  STALLED
+  INFERTILE
+  BLOOD_RING
+  DEAD_EMBRYO
+  UNKNOWN
+}
+
+enum HatchingStage {
+  PIPPED
+  ZIPPED
+  HATCHED
+  DRYING
+  ASSISTED
+  STUCK
+  DIED_IN_SHELL
+  OTHER
+}
+
+enum ChickHealthAtHatch {
+  STRONG
+  WEAK
+  NAVAL_ISSUE
+  SPLAY_LEG
+  INJURY
+  UNKNOWN
+}
+
+enum HatchEventType {
+  SET
+  CANDLING
+  LOCKDOWN
+  HATCH
+  OTHER
+}
+
+enum ChickenOrigin {
+  FROM_EGG
+  PURCHASED
+  HATCHED_ELSEWHERE
+  OTHER
+}
+
+enum Sex {
+  HEN
+  ROOSTER
+  UNKNOWN
+}
+
+enum BirdStatus {
+  ACTIVE
+  SOLD
+  REHOMED
+  DECEASED
+}
+
+enum LifeStage {
+  CHICK
+  PULLET
+  ADULT
+}
+
+enum HealthEventType {
+  HATCH
+  CHECKUP
+  ILLNESS
+  TREATMENT
+  VACCINATION
+  INJURY
+  DEATH
+  OTHER
+}
+
+enum LifeStageHealth {
+  CHICK
+  JUVENILE
+  ADULT
+}
+
+model PoultryPreset {
+  id             String  @id @default(cuid())
+  name           String  @unique
+  poultryLabel   String
+  incubationDays Int
+  lockdownDay    Int
+  isCustom       Boolean @default(false)
+  hatches        Hatch[]
+}
+
+model Hatch {
+  id                String      @id @default(cuid())
+  name              String
+  poultryLabel      String
+  presetId          String?
+  preset            PoultryPreset? @relation(fields: [presetId], references: [id])
+  incubationDays    Int
+  lockdownDay       Int
+  setDate           DateTime    @db.Date
+  lockdownAt        DateTime?
+  expectedHatchDate DateTime?   @db.Date
+  actualHatchDate   DateTime?   @db.Date
+  breed             String?
+  source            String?
+  notes             String?
+  status            HatchStatus @default(INCUBATING)
+  archivedAt        DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  eggs              HatchEgg[]
+  events            HatchEvent[]
+  chickens          Chicken[]
+  reminders         Reminder[]
+
+  @@index([status])
+  @@index([archivedAt])
+}
+
+model HatchEgg {
+  id               String         @id @default(cuid())
+  hatchId          String
+  hatch            Hatch          @relation(fields: [hatchId], references: [id], onDelete: Cascade)
+  eggNumber        Int
+  label            String?
+  source           String?
+  shellMarking     String?
+  status           HatchEggStatus @default(INCUBATING)
+  notes            String?
+  archivedAt       DateTime?
+  hatchedChicken   Chicken?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  incubationLogs   HatchEggLog[]
+  hatchingLogs     HatchEggHatchingLog[]
+  noteLog          HatchEggNote[]
+
+  @@unique([hatchId, eggNumber])
+  @@index([archivedAt])
+}
+
+model HatchEggNote {
+  id         String   @id @default(cuid())
+  hatchEggId String
+  hatchEgg   HatchEgg @relation(fields: [hatchEggId], references: [id], onDelete: Cascade)
+  body       String
+  photoUrl   String?
+  loggedAt   DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([hatchEggId])
+}
+
+model HatchEggLog {
+  id             String                @id @default(cuid())
+  hatchEggId     String
+  hatchEgg       HatchEgg              @relation(fields: [hatchEggId], references: [id], onDelete: Cascade)
+  loggedAt       DateTime              @default(now())
+  incubationDay  Int
+  assessment     DevelopmentAssessment
+  notes          String?
+  photoUrl       String?
+  createdAt      DateTime              @default(now())
+
+  @@index([hatchEggId])
+}
+
+model HatchEggHatchingLog {
+  id          String              @id @default(cuid())
+  hatchEggId  String
+  hatchEgg    HatchEgg            @relation(fields: [hatchEggId], references: [id], onDelete: Cascade)
+  loggedAt    DateTime            @default(now())
+  hatchingDay Int?
+  stage       HatchingStage
+  chickHealth ChickHealthAtHatch?
+  notes       String?
+  photoUrl    String?
+  createdAt   DateTime            @default(now())
+
+  @@index([hatchEggId])
+}
+
+model HatchEvent {
+  id             String         @id @default(cuid())
+  hatchId        String
+  hatch          Hatch          @relation(fields: [hatchId], references: [id], onDelete: Cascade)
+  eventType      HatchEventType
+  occurredAt     DateTime       @default(now())
+  incubationDay  Int?
+  notes          String?
+  createdAt      DateTime       @default(now())
+
+  @@index([hatchId])
+}
+
+model Chicken {
+  id            String        @id @default(cuid())
+  origin        ChickenOrigin
+  originDetail  String?
+  hatchEggId    String?       @unique
+  hatchEgg      HatchEgg?     @relation(fields: [hatchEggId], references: [id])
+  hatchId       String?
+  hatch         Hatch?        @relation(fields: [hatchId], references: [id])
+  poultryLabel  String
+  tagNumber     String        @unique
+  name          String?
+  colorMarking  String?
+  sex           Sex
+  breed         String?
+  notes         String?
+  photoUrl      String?
+  lifeStage     LifeStage     @default(CHICK)
+  status        BirdStatus    @default(ACTIVE)
+  acquiredOn    DateTime      @db.Date
+  hatchedAt     DateTime?
+  deceasedAt    DateTime?     @db.Date
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  healthRecords HealthRecord[]
+  layingRecords LayingRecord[]
+
+  @@index([status])
+  @@index([hatchId])
+}
+
+model HealthRecord {
+  id          String          @id @default(cuid())
+  chickenId   String
+  chicken     Chicken         @relation(fields: [chickenId], references: [id], onDelete: Cascade)
+  lifeStage   LifeStageHealth
+  eventType   HealthEventType
+  observedOn  DateTime        @default(now())
+  symptoms    String?
+  treatment   String?
+  medication  String?
+  followUpOn  DateTime?       @db.Date
+  resolved    Boolean         @default(false)
+  notes       String?
+  photoUrl    String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([chickenId])
+}
+
+model LayingRecord {
+  id         String   @id @default(cuid())
+  chickenId  String?
+  chicken    Chicken? @relation(fields: [chickenId], references: [id])
+  recordedOn DateTime @db.Date
+  count      Int
+  location   String?
+  notes      String?
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+
+  @@index([recordedOn])
+}
+
+enum ReminderCategory {
+  LOCKDOWN
+  MEDICATION
+  INCUBATION
+  HATCHING
+  FEEDING
+  GENERAL
+}
+
+model Reminder {
+  id          String           @id @default(cuid())
+  title       String
+  category    ReminderCategory @default(GENERAL)
+  dueAt       DateTime
+  notes       String?
+  location    String?
+  hatchId     String?
+  hatch       Hatch?           @relation(fields: [hatchId], references: [id], onDelete: SetNull)
+  sourceKey   String?          @unique
+  completed   Boolean          @default(false)
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([dueAt])
+  @@index([completed])
+}

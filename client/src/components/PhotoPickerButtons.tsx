@@ -3,6 +3,10 @@ import Button from "@mui/joy/Button";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 
+/** Max photo file size — typical phone camera JPEG. */
+export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+export const MAX_PHOTO_MB = 15;
+
 type PhotoPickerButtonsProps = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   hasPhoto?: boolean;
@@ -37,8 +41,8 @@ export function readImageFileFromInput(
     onError("Choose an image file");
     return;
   }
-  if (file.size > 8 * 1024 * 1024) {
-    onError("Photo must be 8 MB or smaller");
+  if (file.size > MAX_PHOTO_BYTES) {
+    onError(`Photo must be ${MAX_PHOTO_MB} MB or smaller`);
     return;
   }
   const reader = new FileReader();

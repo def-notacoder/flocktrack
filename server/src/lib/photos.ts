@@ -6,7 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CHICKEN_PHOTO_DIR = path.join(__dirname, "../../uploads/chickens");
 const EGG_LOG_PHOTO_DIR = path.join(__dirname, "../../uploads/egg-logs");
 const HEALTH_RECORD_PHOTO_DIR = path.join(__dirname, "../../uploads/health-records");
-const MAX_BYTES = 8 * 1024 * 1024;
+/** Max photo file size — typical phone camera JPEG. */
+export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+export const MAX_PHOTO_MB = 15;
 
 function parsePhotoDataUrl(dataUrl: string): { ext: string; buffer: Buffer } {
   const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/i);
@@ -15,8 +17,8 @@ function parsePhotoDataUrl(dataUrl: string): { ext: string; buffer: Buffer } {
   }
   const ext = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
   const buffer = Buffer.from(match[2], "base64");
-  if (buffer.length > MAX_BYTES) {
-    throw new Error("Photo must be 8 MB or smaller");
+  if (buffer.length > MAX_PHOTO_BYTES) {
+    throw new Error(`Photo must be ${MAX_PHOTO_MB} MB or smaller`);
   }
   return { ext, buffer };
 }

@@ -1,17 +1,9 @@
 #!/usr/bin/env bash
-# Run on the deploy server from the repo root (via scripts/deploy.ps1 or scripts/deploy.sh).
+# Run on the deploy server after git sync (via scripts/deploy.ps1 or scripts/deploy.sh).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-
-BRANCH="${DEPLOY_BRANCH:-main}"
-REMOTE="${DEPLOY_GIT_REMOTE:-origin}"
-
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "error: $ROOT is not a git repository" >&2
-  exit 1
-fi
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "error: docker is not installed or not on PATH" >&2
@@ -27,11 +19,6 @@ if ! docker compose version >/dev/null 2>&1; then
     exit 1
   fi
 fi
-
-echo "==> Fetching latest from $REMOTE/$BRANCH"
-git fetch "$REMOTE" "$BRANCH"
-git checkout "$BRANCH" 2>/dev/null || git checkout -B "$BRANCH" "$REMOTE/$BRANCH"
-git reset --hard "$REMOTE/$BRANCH"
 
 echo "==> Building and starting stack"
 "${COMPOSE[@]}" up -d --build

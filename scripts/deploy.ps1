@@ -41,19 +41,36 @@ if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
 }
 
 $SshTarget = "$DeployUser@$DeployHost"
-$SshArgs = @()
+$SshCommon = @("-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=accept-new")
 if ($env:DEPLOY_SSH_KEY) {
-  $SshArgs += @("-i", $env:DEPLOY_SSH_KEY)
+  $SshCommon = @("-i", $env:DEPLOY_SSH_KEY) + $SshCommon
 }
-$SshArgs += @(
-  "-o", "BatchMode=yes",
-  "-o", "StrictHostKeyChecking=accept-new",
-  $SshTarget,
-  "export DEPLOY_BRANCH='$DeployBranch' DEPLOY_GIT_REMOTE='$DeployRemote'; cd '$DeployPath' && bash scripts/deploy-remote.sh"
-)
+
+$GitSync = @"
+set -euo pipefail
+cd '$DeployPath'
+git fetch '$DeployRemote' '$DeployBranch'
+git checkout '$DeployBranch' 2>/dev/null || git checkout -B '$DeployBranch' '$DeployRemote/$DeployBranch'
+git reset --hard '$DeployRemote/$DeployBranch'
+"@
+
+$RemoteScript = @"
+set -euo pipefail
+cd '$DeployPath'
+if [ -f scripts/deploy-remote.sh ]; then
+  bash scripts/deploy-remote.sh
+else
+  docker compose up -d --build
+fi
+"@
 
 Write-Host "Deploying $DeployRemote/$DeployBranch to ${SshTarget}:$DeployPath ..." -ForegroundColor Cyan
-& ssh @SshArgs
+Write-Host "==> Syncing git on server" -ForegroundColor Cyan
+& ssh @SshCommon $SshTarget $GitSync
+if ($LASTEXITCODE -ne 0) { Write-Error "Git sync failed (exit $LASTEXITCODE)" }
+
+Write-Host "==> Rebuilding containers" -ForegroundColor Cyan
+& ssh @SshCommon $SshTarget $RemoteScript
 if ($LASTEXITCODE -ne 0) {
   Write-Error "Deploy failed (exit $LASTEXITCODE)"
 }

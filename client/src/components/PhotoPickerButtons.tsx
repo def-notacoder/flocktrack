@@ -2,10 +2,9 @@ import Stack from "@mui/joy/Stack";
 import Button from "@mui/joy/Button";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
+import { compressImageFile, MAX_PHOTO_BYTES, MAX_PHOTO_MB } from "../lib/compressImage";
 
-/** Max photo file size — typical phone camera JPEG. */
-export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
-export const MAX_PHOTO_MB = 15;
+export { MAX_PHOTO_BYTES, MAX_PHOTO_MB };
 
 type PhotoPickerButtonsProps = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -37,22 +36,8 @@ export function readImageFileFromInput(
   const file = e.target.files?.[0];
   e.target.value = "";
   if (!file) return;
-  if (!file.type.startsWith("image/")) {
-    onError("Choose an image file");
-    return;
-  }
-  if (file.size > MAX_PHOTO_BYTES) {
-    onError(`Photo must be ${MAX_PHOTO_MB} MB or smaller`);
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result === "string") {
-      onDataUrl(reader.result);
-    } else {
-      onError("Failed to read photo");
-    }
-  };
-  reader.onerror = () => onError("Failed to read photo");
-  reader.readAsDataURL(file);
+
+  void compressImageFile(file)
+    .then(onDataUrl)
+    .catch((err) => onError(err instanceof Error ? err.message : "Failed to read photo"));
 }

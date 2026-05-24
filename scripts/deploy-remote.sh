@@ -29,9 +29,15 @@ for _ in $(seq 1 60); do
   health="$("${COMPOSE[@]}" ps --format '{{.Health}}' app 2>/dev/null | head -1 || true)"
   if [ "$health" = "healthy" ]; then
     if [ -f nginx.conf ] && docker ps --format '{{.Names}}' | grep -qx nginx; then
-      echo "==> Restarting nginx (pick up bind-mounted nginx.conf)"
-      docker exec nginx nginx -t
-      docker restart nginx
+      echo "==> Recreating nginx container (bind-mounted conf file changes)"
+      NGINX_COMPOSE="/servers/nginx/compose.yml"
+      if [ -f "$NGINX_COMPOSE" ]; then
+        docker compose -f "$NGINX_COMPOSE" up -d --force-recreate nginx
+      else
+        echo "warning: $NGINX_COMPOSE not found; falling back to docker restart nginx" >&2
+        docker exec nginx nginx -t
+        docker restart nginx
+      fi
     fi
     echo "Deploy complete — app container is healthy"
     exit 0

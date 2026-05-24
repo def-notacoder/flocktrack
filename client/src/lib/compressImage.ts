@@ -2,9 +2,9 @@
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 export const MAX_PHOTO_MB = 15;
 
-/** Keep base64 JSON payload well under nginx/API 24 MB limit. */
-const UPLOAD_TARGET_BYTES = 8 * 1024 * 1024;
-const MAX_EDGE_PX = 2048;
+/** Target decoded JPEG size — keeps base64 JSON well under nginx/API 24 MB limit. */
+const UPLOAD_TARGET_BYTES = 3 * 1024 * 1024;
+const MAX_EDGE_PX = 1920;
 const MIN_EDGE_PX = 640;
 const JPEG_MIME = "image/jpeg";
 
@@ -58,17 +58,24 @@ async function compressToJpegDataUrl(
 
   ctx.drawImage(source, 0, 0, width, height);
 
-  let quality = 0.88;
+  let quality = 0.85;
   let dataUrl = encodeJpeg(canvas, quality);
   let bytes = decodedDataUrlBytes(dataUrl);
 
-  while (bytes > targetMaxBytes && quality > 0.45) {
-    quality -= 0.08;
+  while (bytes > targetMaxBytes && quality > 0.4) {
+    quality -= 0.07;
     dataUrl = encodeJpeg(canvas, quality);
     bytes = decodedDataUrlBytes(dataUrl);
   }
 
   return dataUrl;
+}
+
+function shouldCompress(file: File): boolean {
+  const type = file.type.toLowerCase();
+  if (type.includes("heic") || type.includes("heif")) return true;
+  if (type === "image/png" || type === "image/webp" || type === "image/gif") return true;
+  return file.size > 512 * 1024;
 }
 
 /** Resize and recompress phone photos so uploads fit app/nginx limits. */
@@ -77,8 +84,7 @@ export async function compressImageFile(file: File): Promise<string> {
     throw new Error("Choose an image file");
   }
 
-  // Small files that already fit — skip re-encoding to avoid quality loss.
-  if (file.size <= UPLOAD_TARGET_BYTES && !file.type.includes("heic") && !file.type.includes("heif")) {
+  if (!shouldCompress(file)) {
     const dataUrl = await readFileAsDataUrl(file);
     if (decodedDataUrlBytes(dataUrl) <= UPLOAD_TARGET_BYTES) {
       return dataUrl;

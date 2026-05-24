@@ -29,9 +29,9 @@ for _ in $(seq 1 60); do
   health="$("${COMPOSE[@]}" ps --format '{{.Health}}' app 2>/dev/null | head -1 || true)"
   if [ "$health" = "healthy" ]; then
     if [ -f nginx.conf ] && docker ps --format '{{.Names}}' | grep -qx nginx; then
-      echo "==> Reloading nginx (client_max_body_size from nginx.conf)"
+      echo "==> Restarting nginx (pick up bind-mounted nginx.conf)"
       docker exec nginx nginx -t
-      docker exec nginx nginx -s reload
+      docker restart nginx
     fi
     echo "Deploy complete — app container is healthy"
     exit 0

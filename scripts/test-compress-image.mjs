@@ -11,7 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
-const UPLOAD_TARGET_BYTES = 8 * 1024 * 1024;
+const UPLOAD_TARGET_BYTES = 3 * 1024 * 1024;
 const MAX_JSON_BODY_BYTES = 24 * 1024 * 1024;
 
 function decodedDataUrlBytes(dataUrl) {
@@ -63,7 +63,7 @@ await fs.writeFile(fixturePath, jpeg);
 assert(jpeg.length > UPLOAD_TARGET_BYTES, `fixture should exceed upload target (${jpeg.length} bytes)`);
 console.log(`Created fixture ${fixturePath} (${(jpeg.length / (1024 * 1024)).toFixed(2)} MB)`);
 
-// Simulate post-compression payload ceiling (8 MB JPEG -> ~10.7 MB data URL JSON field).
+// Simulate post-compression payload ceiling (3 MB JPEG -> ~4 MB data URL JSON field).
 const simulatedCompressedBytes = UPLOAD_TARGET_BYTES - 1024;
 const simulatedDataUrlLen = Math.ceil((simulatedCompressedBytes * 4) / 3) + 30;
 const simulatedJsonBytes = simulatedDataUrlLen + 64;

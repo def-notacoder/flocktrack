@@ -16,6 +16,7 @@ import { healthRecordsRouter } from "./routes/health-records.js";
 import { layingRecordsRouter } from "./routes/laying-records.js";
 import { dashboardRouter } from "./routes/dashboard.js";
 import { remindersRouter } from "./routes/reminders.js";
+import { profileRouter } from "./routes/profile.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/health-records", healthRecordsRouter);
 app.use("/api/laying-records", layingRecordsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/reminders", remindersRouter);
+app.use("/api/profile", profileRouter);
 
 const clientDist = path.join(__dirname, "../../client/dist");
 app.use(express.static(clientDist));

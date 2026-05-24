@@ -311,3 +311,15 @@ model Reminder {
   @@index([dueAt])
   @@index([completed])
 }
+
+model FarmProfile {
+  id          String   @id @default("default")
+  ownerName   String?
+  farmName    String?
+  description String?
+  location    String?
+  email       String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

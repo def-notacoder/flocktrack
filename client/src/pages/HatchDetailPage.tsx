@@ -15,6 +15,11 @@ import TabPanel from "@mui/joy/TabPanel";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
 import Input from "@mui/joy/Input";
+import Modal from "@mui/joy/Modal";
+import ModalDialog from "@mui/joy/ModalDialog";
+import DialogTitle from "@mui/joy/DialogTitle";
+import DialogContent from "@mui/joy/DialogContent";
+import DialogActions from "@mui/joy/DialogActions";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import UndoIcon from "@mui/icons-material/Undo";
 import { api, type HatchDetail, type HatchStage } from "../api/client";
@@ -58,6 +63,8 @@ export default function HatchDetailPage() {
   const [editingDay, setEditingDay] = useState(false);
   const [dayValue, setDayValue] = useState(1);
   const [daySaving, setDaySaving] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     if (!id) return;
@@ -134,6 +141,21 @@ export default function HatchDetailPage() {
     }
   };
 
+  const confirmDeleteHatch = async () => {
+    if (!id) return;
+    setDeleting(true);
+    setError("");
+    try {
+      await api.hatches.delete(id);
+      navigate("/hatch");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete incubator");
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteOpen(false);
+    }
+  };
+
   if (error && !hatch) return <Alert color="danger">{error}</Alert>;
   if (!hatch) return <CircularProgress />;
 
@@ -187,9 +209,19 @@ export default function HatchDetailPage() {
               Day {m?.currentIncubationDay ?? "?"} of {hatch.incubationDays}
             </Typography>
             {!isArchived && (
-              <Button size="sm" variant="plain" onClick={startEditDay}>
-                Edit
-              </Button>
+              <>
+                <Button size="sm" variant="plain" onClick={startEditDay}>
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="soft"
+                  color="danger"
+                  onClick={() => setConfirmDeleteOpen(true)}
+                >
+                  Delete incubator
+                </Button>
+              </>
             )}
           </>
         )}
@@ -284,6 +316,29 @@ export default function HatchDetailPage() {
           />
         </TabPanel>
       </Tabs>
+
+      <Modal open={confirmDeleteOpen} onClose={() => !deleting && setConfirmDeleteOpen(false)}>
+        <ModalDialog variant="outlined" role="alertdialog" aria-labelledby="delete-hatch-title">
+          <DialogTitle id="delete-hatch-title">Delete incubator?</DialogTitle>
+          <DialogContent>
+            Permanently delete {hatch.name}? All eggs, logs, and reminders for this incubator will
+            be removed. This cannot be undone.
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="plain"
+              color="neutral"
+              disabled={deleting}
+              onClick={() => setConfirmDeleteOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="solid" color="danger" loading={deleting} onClick={confirmDeleteHatch}>
+              Delete incubator
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
     </Stack>
   );
 }

@@ -10,6 +10,7 @@ import ChickensPage from "./pages/ChickensPage";
 import ChickenFormPage from "./pages/ChickenFormPage";
 import ChickenDetailPage from "./pages/ChickenDetailPage";
 import EggsPage from "./pages/EggsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/birds/:id" element={<ChickenDetailPage />} />
         <Route path="/birds/:id/edit" element={<ChickenFormPage />} />
         <Route path="/eggs" element={<EggsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>
   );

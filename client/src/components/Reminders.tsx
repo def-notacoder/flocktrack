@@ -157,7 +157,11 @@ type ReminderListProps = {
   emptyMessage?: string;
 };
 
+const COLLAPSED_REMINDER_COUNT = 4;
+const EXPANDED_REMINDER_COUNT = 8;
+
 export function ReminderList({ reminders, onChange, emptyMessage }: ReminderListProps) {
+  const [expanded, setExpanded] = useState(false);
   const complete = async (id: string) => {
     await api.reminders.patch(id, { completed: true });
     onChange();
@@ -171,9 +175,13 @@ export function ReminderList({ reminders, onChange, emptyMessage }: ReminderList
     );
   }
 
+  const visibleCount = expanded ? EXPANDED_REMINDER_COUNT : COLLAPSED_REMINDER_COUNT;
+  const visibleReminders = reminders.slice(0, visibleCount);
+  const canExpand = reminders.length > COLLAPSED_REMINDER_COUNT;
+
   return (
     <Stack spacing={1}>
-      {reminders.map((r) => {
+      {visibleReminders.map((r) => {
         const overdue = !r.completed && new Date(r.dueAt) < new Date();
         return (
           <Card key={r.id} variant="outlined" color={overdue ? "warning" : "neutral"}>
@@ -211,6 +219,17 @@ export function ReminderList({ reminders, onChange, emptyMessage }: ReminderList
           </Card>
         );
       })}
+      {canExpand && (
+        <Button
+          size="sm"
+          variant="plain"
+          color="neutral"
+          onClick={() => setExpanded((v) => !v)}
+          sx={{ alignSelf: "flex-start" }}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </Button>
+      )}
     </Stack>
   );
 }

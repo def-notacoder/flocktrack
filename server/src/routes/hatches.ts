@@ -548,3 +548,29 @@ hatchesRouter.patch("/:id/events/:eventId", validate(patchEventSchema), async (r
     next(e);
   }
 });
+
+hatchesRouter.delete("/:id", async (req, res, next) => {
+  try {
+    const hatchId = req.params.id;
+    const existing = await prisma.hatch.findUnique({ where: { id: hatchId } });
+    if (!existing) {
+      res.status(404).json({ error: "Hatch not found" });
+      return;
+    }
+    const registeredBirds = await prisma.chicken.count({
+      where: {
+        OR: [{ hatchId }, { hatchEgg: { hatchId } }],
+      },
+    });
+    if (registeredBirds > 0) {
+      res.status(409).json({
+        error: "Cannot delete an incubator with registered birds. Remove or reassign those birds first.",
+      });
+      return;
+    }
+    await prisma.hatch.delete({ where: { id: hatchId } });
+    res.status(204).send();
+  } catch (e) {
+    next(e);
+  }
+});

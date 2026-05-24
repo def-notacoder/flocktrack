@@ -11,7 +11,12 @@ import Option from "@mui/joy/Option";
 import Textarea from "@mui/joy/Textarea";
 import Stack from "@mui/joy/Stack";
 import Alert from "@mui/joy/Alert";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
+import Modal from "@mui/joy/Modal";
+import ModalDialog from "@mui/joy/ModalDialog";
+import DialogTitle from "@mui/joy/DialogTitle";
+import DialogContent from "@mui/joy/DialogContent";
+import DialogActions from "@mui/joy/DialogActions";
+import { PhotoPickerButtons, readImageFileFromInput } from "../components/PhotoPickerButtons";
 import { api } from "../api/client";
 
 export default function ChickenFormPage() {
@@ -33,6 +38,8 @@ export default function ChickenFormPage() {
   const [photoRemoved, setPhotoRemoved] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -49,25 +56,15 @@ export default function ChickenFormPage() {
   }, [id]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Choose an image file");
-      return;
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      setError("Photo must be 8 MB or smaller");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPhotoDataUrl(typeof reader.result === "string" ? reader.result : null);
-      setPhotoRemoved(false);
-      setError("");
-    };
-    reader.onerror = () => setError("Failed to read photo");
-    reader.readAsDataURL(file);
+    readImageFileFromInput(
+      e,
+      (dataUrl) => {
+        setPhotoDataUrl(dataUrl);
+        setPhotoRemoved(false);
+        setError("");
+      },
+      (msg) => setError(msg)
+    );
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -119,6 +116,21 @@ export default function ChickenFormPage() {
   };
 
   const previewPhotoUrl = photoDataUrl ?? (photoRemoved ? null : existingPhotoUrl);
+
+  const confirmDeleteBird = async () => {
+    if (!id) return;
+    setDeleting(true);
+    setError("");
+    try {
+      await api.chickens.delete(id);
+      navigate("/birds");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete bird");
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteOpen(false);
+    }
+  };
 
   return (
     <Stack spacing={2} component="form" onSubmit={submit}>
@@ -188,16 +200,7 @@ export default function ChickenFormPage() {
       <FormControl>
         <FormLabel>Photo</FormLabel>
         <Stack spacing={1}>
-          <Button component="label" variant="outlined" startDecorator={<PhotoCameraIcon />}>
-            {previewPhotoUrl ? "Change photo" : "Add photo"}
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              hidden
-              onChange={handlePhotoChange}
-            />
-          </Button>
+          <PhotoPickerButtons hasPhoto={Boolean(previewPhotoUrl)} onChange={handlePhotoChange} size="md" />
           {previewPhotoUrl && (
             <Stack spacing={0.5} alignItems="flex-start">
               <Box
@@ -262,10 +265,44 @@ export default function ChickenFormPage() {
         {isEdit ? "Save" : "Add to flock"}
       </Button>
       {isEdit && (
-        <Button component={Link} to={`/birds/${id}`} variant="plain">
-          Cancel
-        </Button>
+        <>
+          <Button component={Link} to={`/birds/${id}`} variant="plain">
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="soft"
+            color="danger"
+            onClick={() => setConfirmDeleteOpen(true)}
+          >
+            Delete bird
+          </Button>
+        </>
       )}
+
+      <Modal open={confirmDeleteOpen} onClose={() => !deleting && setConfirmDeleteOpen(false)}>
+        <ModalDialog variant="outlined" role="alertdialog" aria-labelledby="delete-bird-title">
+          <DialogTitle id="delete-bird-title">Delete bird?</DialogTitle>
+          <DialogContent>
+            Permanently delete #{tagNumberColour}
+            {name ? ` ${name}` : ""}? Health logs and photos will be removed. Egg collection
+            entries will be kept without a linked hen. This cannot be undone.
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="plain"
+              color="neutral"
+              disabled={deleting}
+              onClick={() => setConfirmDeleteOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="solid" color="danger" loading={deleting} onClick={confirmDeleteBird}>
+              Delete bird
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
     </Stack>
   );
 }

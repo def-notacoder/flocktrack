@@ -6,6 +6,7 @@ import Typography from "@mui/joy/Typography";
 import HomeIcon from "@mui/icons-material/Home";
 import EggIcon from "@mui/icons-material/Egg";
 import EggAltIcon from "@mui/icons-material/EggAlt";
+import PersonIcon from "@mui/icons-material/Person";
 import { AppLogo } from "./AppLogo";
 import { ChickenIcon } from "./ChickenIcon";
 
@@ -14,6 +15,7 @@ const nav = [
   { path: "/eggs", label: "Eggs", icon: <EggAltIcon /> },
   { path: "/hatch", label: "Hatch", icon: <EggIcon /> },
   { path: "/birds", label: "Flock", icon: <ChickenIcon /> },
+  { path: "/profile", label: "Profile", icon: <PersonIcon /> },
 ];
 
 export function Layout() {

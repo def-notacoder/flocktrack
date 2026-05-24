@@ -73,6 +73,7 @@ export const api = {
         body: JSON.stringify(body),
       }),
     archive: (id: string) => request<HatchDetail>(`/hatches/${id}/archive`, { method: "POST" }),
+    delete: (id: string) => request(`/hatches/${id}`, { method: "DELETE" }),
   },
   eggs: {
     list: (hatchId: string, filter: "active" | "archived" | "all" = "active") => {
@@ -151,6 +152,7 @@ export const api = {
       request<Chicken>(`/chickens/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     deceased: (id: string, body: { notes?: string; deceasedAt?: string }) =>
       request(`/chickens/${id}/deceased`, { method: "PATCH", body: JSON.stringify(body) }),
+    delete: (id: string) => request(`/chickens/${id}`, { method: "DELETE" }),
   },
   health: {
     list: (chickenId?: string) =>
@@ -183,6 +185,11 @@ export const api = {
     patch: (id: string, body: Partial<CreateReminder> & { completed?: boolean }) =>
       request<Reminder>(`/reminders/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     delete: (id: string) => request(`/reminders/${id}`, { method: "DELETE" }),
+  },
+  profile: {
+    get: () => request<FarmProfile>("/profile"),
+    update: (body: UpdateFarmProfile) =>
+      request<FarmProfile>("/profile", { method: "PATCH", body: JSON.stringify(body) }),
   },
 };
 
@@ -467,4 +474,23 @@ export interface UpdateLayingRecord {
   chickenId?: string | null;
   photo?: string;
   clearPhoto?: boolean;
+}
+
+export interface FarmProfile {
+  id: string;
+  ownerName?: string | null;
+  farmName?: string | null;
+  description?: string | null;
+  location?: string | null;
+  email?: string | null;
+  phone?: string | null;
+}
+
+export interface UpdateFarmProfile {
+  ownerName?: string | null;
+  farmName?: string | null;
+  description?: string | null;
+  location?: string | null;
+  email?: string | null;
+  phone?: string | null;
 }

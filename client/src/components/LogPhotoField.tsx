@@ -4,7 +4,7 @@ import Button from "@mui/joy/Button";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
 import Stack from "@mui/joy/Stack";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
+import { PhotoPickerButtons, readImageFileFromInput } from "./PhotoPickerButtons";
 
 export function useLogPhotoEdit() {
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
@@ -24,24 +24,10 @@ export function useLogPhotoEdit() {
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>, onError: (msg: string) => void) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      onError("Choose an image file");
-      return;
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      onError("Photo must be 8 MB or smaller");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPhotoDataUrl(typeof reader.result === "string" ? reader.result : null);
+    readImageFileFromInput(e, (dataUrl) => {
+      setPhotoDataUrl(dataUrl);
       setPhotoRemoved(false);
-    };
-    reader.onerror = () => onError("Failed to read photo");
-    reader.readAsDataURL(file);
+    }, onError);
   };
 
   const removePhoto = () => {
@@ -71,10 +57,7 @@ export function LogPhotoField({ previewUrl, onChange, onRemove }: LogPhotoFieldP
     <FormControl size="sm">
       <FormLabel>Photo</FormLabel>
       <Stack spacing={1}>
-        <Button component="label" variant="outlined" size="sm" startDecorator={<PhotoCameraIcon />}>
-          {previewUrl ? "Change photo" : "Add photo"}
-          <input type="file" accept="image/*" capture="environment" hidden onChange={onChange} />
-        </Button>
+        <PhotoPickerButtons hasPhoto={Boolean(previewUrl)} onChange={onChange} />
         {previewUrl && (
           <Stack spacing={0.5} alignItems="flex-start">
             <Box

@@ -375,3 +375,28 @@ chickensRouter.patch("/:id/deceased", async (req, res, next) => {
     next(e);
   }
 });
+
+chickensRouter.delete("/:id", async (req, res, next) => {
+  try {
+    const existing = await prisma.chicken.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      res.status(404).json({ error: "Chicken not found" });
+      return;
+    }
+    if (existing.tagNumber === "000") {
+      res.status(403).json({ error: "This bird cannot be deleted" });
+      return;
+    }
+    await prisma.$transaction(async (tx) => {
+      await tx.layingRecord.updateMany({
+        where: { chickenId: req.params.id },
+        data: { chickenId: null },
+      });
+      await tx.chicken.delete({ where: { id: req.params.id } });
+    });
+    await deleteChickenPhoto(req.params.id);
+    res.status(204).send();
+  } catch (e) {
+    next(e);
+  }
+});

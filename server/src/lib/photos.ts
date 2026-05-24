@@ -9,6 +9,8 @@ const HEALTH_RECORD_PHOTO_DIR = path.join(__dirname, "../../uploads/health-recor
 /** Max photo file size — typical phone camera JPEG. */
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 export const MAX_PHOTO_MB = 15;
+/** Express JSON body limit; must match nginx client_max_body_size. */
+export const MAX_JSON_BODY_MB = 24;
 
 function parsePhotoDataUrl(dataUrl: string): { ext: string; buffer: Buffer } {
   const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/i);

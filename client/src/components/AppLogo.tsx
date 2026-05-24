@@ -20,7 +20,7 @@ export function AppLogo({ size = 72 }: AppLogoProps) {
     >
       <Box
         component="img"
-        src="/logo.png?v=6"
+        src="/logo.png?v=7"
         alt="Flock Log"
         sx={{
           display: "block",

@@ -6,4 +6,5 @@ uploads/
 .DS_Store
 dev-dist/
 *.tsbuildinfo
+client/vite.config.js
 client/public/test-fixtures/

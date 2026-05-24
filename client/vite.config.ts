@@ -50,11 +50,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        navigateFallbackDenylist: [/^\/api/, /^\/uploads/],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
           {
             urlPattern: /^\/api\/.*/i,
-            handler: "NetworkFirst",
-            options: { cacheName: "api-cache" },
+            handler: "NetworkOnly",
           },
         ],
       },

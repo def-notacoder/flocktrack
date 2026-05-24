@@ -8,9 +8,7 @@ import ListItemContent from "@mui/joy/ListItemContent";
 import Textarea from "@mui/joy/Textarea";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
-import Input from "@mui/joy/Input";
-import Alert from "@mui/joy/Alert";
-import { api, type HatchEggNote } from "../api/client";
+import { DateInput } from "./DateInput";
 import { LogEditActions } from "./LogEditActions";
 import { LogPhotoField, LogPhotoPreview, useLogPhotoEdit } from "./LogPhotoField";
 import { toDatetimeLocal } from "../lib/datetime";
@@ -104,6 +102,13 @@ export function EggLogSection({ hatchId, eggId, notes, canEdit = true, onChanged
     }
   };
 
+  const latestNote =
+    notes.length > 0
+      ? [...notes].sort(
+          (a, b) => new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()
+        )[0]
+      : null;
+
   return (
     <Stack spacing={2} sx={{ pt: 2 }}>
       {canEdit && (
@@ -135,62 +140,60 @@ export function EggLogSection({ hatchId, eggId, notes, canEdit = true, onChanged
 
       {error && <Alert color="danger">{error}</Alert>}
 
-      {notes.length === 0 ? (
+      {!latestNote ? (
         <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
           No notes yet. Saved notes will appear here with date and time.
         </Typography>
       ) : (
         <List aria-label="Egg log">
-          {notes.map((note) => (
-            <ListItem key={note.id} sx={{ px: 0 }}>
-              <ListItemContent sx={{ width: "100%" }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-                  <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                    {editingId === note.id ? (
-                      <>
-                        <FormControl size="sm">
-                          <FormLabel>Date & time</FormLabel>
-                          <Input
-                            type="datetime-local"
-                            value={editLoggedAt}
-                            onChange={(e) => setEditLoggedAt(e.target.value)}
-                          />
-                        </FormControl>
-                        <Textarea
-                          minRows={3}
-                          value={editBody}
-                          onChange={(e) => setEditBody(e.target.value)}
+          <ListItem sx={{ px: 0 }}>
+            <ListItemContent sx={{ width: "100%" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+                  {editingId === latestNote.id ? (
+                    <>
+                      <FormControl size="sm">
+                        <FormLabel>Date & time</FormLabel>
+                        <DateInput
+                          type="datetime-local"
+                          value={editLoggedAt}
+                          onChange={(e) => setEditLoggedAt(e.target.value)}
                         />
-                        <LogPhotoField
-                          previewUrl={editPhoto.previewUrl}
-                          onChange={(e) => editPhoto.handlePhotoChange(e, setError)}
-                          onRemove={editPhoto.removePhoto}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
-                          {formatWhen(note.loggedAt)}
-                        </Typography>
-                        <Typography level="body-sm" sx={{ whiteSpace: "pre-wrap" }}>
-                          {note.body}
-                        </Typography>
-                        <LogPhotoPreview url={note.photoUrl} alt="Log photo" />
-                      </>
-                    )}
-                  </Stack>
-                  <LogEditActions
-                    editing={editingId === note.id}
-                    canEdit={canEdit}
-                    saving={editSaving}
-                    onEdit={() => startEdit(note)}
-                    onSave={saveEdit}
-                    onCancel={cancelEdit}
-                  />
+                      </FormControl>
+                      <Textarea
+                        minRows={3}
+                        value={editBody}
+                        onChange={(e) => setEditBody(e.target.value)}
+                      />
+                      <LogPhotoField
+                        previewUrl={editPhoto.previewUrl}
+                        onChange={(e) => editPhoto.handlePhotoChange(e, setError)}
+                        onRemove={editPhoto.removePhoto}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                        {formatWhen(latestNote.loggedAt)}
+                      </Typography>
+                      <Typography level="body-sm" sx={{ whiteSpace: "pre-wrap" }}>
+                        {latestNote.body}
+                      </Typography>
+                      <LogPhotoPreview url={latestNote.photoUrl} alt="Log photo" />
+                    </>
+                  )}
                 </Stack>
-              </ListItemContent>
-            </ListItem>
-          ))}
+                <LogEditActions
+                  editing={editingId === latestNote.id}
+                  canEdit={canEdit}
+                  saving={editSaving}
+                  onEdit={() => startEdit(latestNote)}
+                  onSave={saveEdit}
+                  onCancel={cancelEdit}
+                />
+              </Stack>
+            </ListItemContent>
+          </ListItem>
         </List>
       )}
     </Stack>

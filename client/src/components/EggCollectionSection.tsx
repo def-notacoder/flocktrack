@@ -15,6 +15,7 @@ import Alert from "@mui/joy/Alert";
 import { api, type Chicken, type LayingRecord } from "../api/client";
 import { LogEditActions } from "./LogEditActions";
 import { LogPhotoField, LogPhotoPreview, useLogPhotoEdit } from "./LogPhotoField";
+import { DateInput } from "./DateInput";
 
 function formatCollectedOn(iso: string) {
   const d = new Date(iso);
@@ -136,7 +137,7 @@ export function EggCollectionSection({ birds, records, canEdit = true, onChanged
           <Typography level="title-sm">Add collection</Typography>
           <FormControl required>
             <FormLabel>Date</FormLabel>
-            <Input type="date" value={recordedOn} onChange={(e) => setRecordedOn(e.target.value)} />
+            <DateInput value={recordedOn} onChange={(e) => setRecordedOn(e.target.value)} />
           </FormControl>
           <FormControl required>
             <FormLabel>Count</FormLabel>
@@ -200,7 +201,7 @@ export function EggCollectionSection({ birds, records, canEdit = true, onChanged
                       <>
                         <FormControl size="sm">
                           <FormLabel>Date</FormLabel>
-                          <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+                          <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} />
                         </FormControl>
                         <FormControl size="sm">
                           <FormLabel>Count</FormLabel>

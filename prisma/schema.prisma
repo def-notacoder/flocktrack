@@ -33,6 +33,7 @@ enum DevelopmentAssessment {
   BLOOD_RING
   DEAD_EMBRYO
   UNKNOWN
+  OTHER
 }
 
 enum HatchingStage {

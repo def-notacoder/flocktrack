@@ -6,17 +6,20 @@ import { validate, type ValidatedRequest } from "../middleware/validate.js";
 
 export const hatchEggLogsRouter = Router({ mergeParams: true });
 
+const DEVELOPMENT_ASSESSMENTS = [
+  "DEVELOPING_WELL",
+  "STALLED",
+  "INFERTILE",
+  "BLOOD_RING",
+  "DEAD_EMBRYO",
+  "UNKNOWN",
+  "OTHER",
+] as const;
+
 const logSchema = z.object({
   body: z.object({
     incubationDay: z.number().int().min(1),
-    assessment: z.enum([
-      "DEVELOPING_WELL",
-      "STALLED",
-      "INFERTILE",
-      "BLOOD_RING",
-      "DEAD_EMBRYO",
-      "UNKNOWN",
-    ]),
+    assessment: z.enum(DEVELOPMENT_ASSESSMENTS),
     notes: z.string().optional(),
     loggedAt: z.string().optional(),
     photo: z.string().optional(),
@@ -26,9 +29,7 @@ const logSchema = z.object({
 const patchLogSchema = z.object({
   body: z.object({
     incubationDay: z.number().int().min(1).optional(),
-    assessment: z
-      .enum(["DEVELOPING_WELL", "STALLED", "INFERTILE", "BLOOD_RING", "DEAD_EMBRYO", "UNKNOWN"])
-      .optional(),
+    assessment: z.enum(DEVELOPMENT_ASSESSMENTS).optional(),
     notes: z.string().nullable().optional(),
     loggedAt: z.string().optional(),
     photo: z.string().optional(),

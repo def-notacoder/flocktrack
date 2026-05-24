@@ -4,6 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { prisma } from "./lib/prisma.js";
+import { ensurePoultryPresets } from "./lib/ensure-poultry-presets.js";
 import { errorHandler } from "./middleware/error.js";
 import { poultryPresetsRouter } from "./routes/poultry-presets.js";
 import { hatchesRouter } from "./routes/hatches.js";
@@ -61,6 +62,14 @@ app.get("*", (req, res, next) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Flock Log API http://localhost:${PORT}`);
+async function start() {
+  await ensurePoultryPresets();
+  app.listen(PORT, () => {
+    console.log(`Flock Log API http://localhost:${PORT}`);
+  });
+}
+
+start().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });

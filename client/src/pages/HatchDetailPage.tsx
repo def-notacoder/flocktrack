@@ -60,9 +60,10 @@ export default function HatchDetailPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState(0);
   const [stageLoading, setStageLoading] = useState<HatchStage | "undo" | null>(null);
-  const [editingDay, setEditingDay] = useState(false);
+  const [editingClutch, setEditingClutch] = useState(false);
+  const [nameValue, setNameValue] = useState("");
   const [dayValue, setDayValue] = useState(1);
-  const [daySaving, setDaySaving] = useState(false);
+  const [clutchSaving, setClutchSaving] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -111,33 +112,50 @@ export default function HatchDetailPage() {
     }
   };
 
-  const startEditDay = () => {
-    if (!hatch?.milestones) return;
-    setDayValue(hatch.milestones.currentIncubationDay);
-    setEditingDay(true);
+  const startEditClutch = () => {
+    if (!hatch) return;
+    setNameValue(hatch.name);
+    setDayValue(hatch.milestones?.currentIncubationDay ?? 1);
+    setEditingClutch(true);
     setError("");
   };
 
-  const cancelEditDay = () => {
-    setEditingDay(false);
+  const cancelEditClutch = () => {
+    setEditingClutch(false);
   };
 
-  const saveDay = async () => {
-    if (!id) return;
+  const saveClutch = async () => {
+    if (!id || !hatch) return;
+    const name = nameValue.trim();
+    if (!name) {
+      setError("Clutch name is required");
+      return;
+    }
     if (!Number.isFinite(dayValue) || dayValue < 1) {
       setError("Incubation day must be at least 1");
       return;
     }
-    setDaySaving(true);
+    setClutchSaving(true);
     setError("");
     try {
-      const updated = await api.hatches.setIncubationDay(id, dayValue);
-      setHatch(updated);
-      setEditingDay(false);
+      const updates: Promise<HatchDetail>[] = [];
+      if (name !== hatch.name) {
+        updates.push(api.hatches.patch(id, { name }));
+      }
+      if (dayValue !== (hatch.milestones?.currentIncubationDay ?? 1)) {
+        updates.push(api.hatches.setIncubationDay(id, dayValue));
+      }
+      if (updates.length === 0) {
+        setEditingClutch(false);
+        return;
+      }
+      await Promise.all(updates);
+      load();
+      setEditingClutch(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update incubation day");
+      setError(e instanceof Error ? e.message : "Failed to update clutch");
     } finally {
-      setDaySaving(false);
+      setClutchSaving(false);
     }
   };
 
@@ -172,7 +190,14 @@ export default function HatchDetailPage() {
       <Button component={Link} to="/hatch" variant="plain" size="sm" sx={{ alignSelf: "flex-start", px: 0 }}>
         ← Hatch
       </Button>
-      <Typography level="h3">{hatch.name}</Typography>
+      {editingClutch ? (
+        <FormControl>
+          <FormLabel>Clutch name</FormLabel>
+          <Input value={nameValue} onChange={(e) => setNameValue(e.target.value)} />
+        </FormControl>
+      ) : (
+        <Typography level="h3">{hatch.name}</Typography>
+      )}
       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
         <Chip>{hatch.poultryLabel}</Chip>
         <Chip size="sm" color={hatchStatusColor(hatch.status)} variant="soft">
@@ -180,7 +205,7 @@ export default function HatchDetailPage() {
         </Chip>
       </Stack>
       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-        {editingDay ? (
+        {editingClutch ? (
           <>
             <FormControl size="sm" sx={{ minWidth: 120 }}>
               <FormLabel>Incubation day</FormLabel>
@@ -195,10 +220,10 @@ export default function HatchDetailPage() {
               of {hatch.incubationDays}
             </Typography>
             <Stack direction="row" spacing={0.5} sx={{ alignSelf: "flex-end", pb: 0.5 }}>
-              <Button size="sm" variant="solid" loading={daySaving} onClick={saveDay}>
+              <Button size="sm" variant="solid" loading={clutchSaving} onClick={saveClutch}>
                 Save
               </Button>
-              <Button size="sm" variant="plain" disabled={daySaving} onClick={cancelEditDay}>
+              <Button size="sm" variant="plain" disabled={clutchSaving} onClick={cancelEditClutch}>
                 Cancel
               </Button>
             </Stack>
@@ -210,7 +235,7 @@ export default function HatchDetailPage() {
             </Typography>
             {!isArchived && (
               <>
-                <Button size="sm" variant="plain" onClick={startEditDay}>
+                <Button size="sm" variant="plain" onClick={startEditClutch}>
                   Edit
                 </Button>
                 <Button
@@ -219,14 +244,14 @@ export default function HatchDetailPage() {
                   color="danger"
                   onClick={() => setConfirmDeleteOpen(true)}
                 >
-                  Delete incubator
+                  Delete
                 </Button>
               </>
             )}
           </>
         )}
       </Stack>
-      {!editingDay && (
+      {!editingClutch && (
         <Typography level="body-xs" sx={{ color: "text.tertiary", mt: -1 }}>
           Eggs set {new Date(hatch.setDate).toLocaleDateString()}
         </Typography>

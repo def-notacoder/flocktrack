@@ -115,11 +115,18 @@ hatchesRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-hatchesRouter.patch("/:id", async (req, res, next) => {
+const patchHatchSchema = z.object({
+  body: z.object({
+    name: z.string().trim().min(1),
+  }),
+});
+
+hatchesRouter.patch("/:id", validate(patchHatchSchema), async (req, res, next) => {
   try {
+    const { body } = (req as ValidatedRequest<z.infer<typeof patchHatchSchema>>).validated;
     const hatch = await prisma.hatch.update({
       where: { id: req.params.id },
-      data: req.body,
+      data: { name: body.name },
       include: { eggs: true, events: true },
     });
     res.json(enrichHatch(hatch));

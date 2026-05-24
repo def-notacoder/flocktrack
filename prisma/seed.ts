@@ -2,26 +2,30 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import {
+  DEFAULT_POULTRY_PRESETS,
+  POULTRY_PRESET_IDS,
+} from "../server/src/lib/poultry-presets.ts";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const presets = [
-    { name: "Chicken", poultryLabel: "Chicken", incubationDays: 21, lockdownDay: 18 },
-    { name: "Duck", poultryLabel: "Duck", incubationDays: 28, lockdownDay: 25 },
-    { name: "Goose", poultryLabel: "Goose", incubationDays: 30, lockdownDay: 25 },
-    { name: "Turkey", poultryLabel: "Turkey", incubationDays: 28, lockdownDay: 25 },
-    { name: "Quail", poultryLabel: "Quail", incubationDays: 18, lockdownDay: 15 },
-    { name: "Custom", poultryLabel: "Custom", incubationDays: 21, lockdownDay: 18, isCustom: true },
-  ];
-
-  for (const p of presets) {
+  for (const p of DEFAULT_POULTRY_PRESETS) {
     await prisma.poultryPreset.upsert({
       where: { name: p.name },
-      create: p,
-      update: p,
+      create: {
+        id: POULTRY_PRESET_IDS[p.name],
+        ...p,
+        isCustom: p.isCustom ?? false,
+      },
+      update: {
+        poultryLabel: p.poultryLabel,
+        incubationDays: p.incubationDays,
+        lockdownDay: p.lockdownDay,
+        isCustom: p.isCustom ?? false,
+      },
     });
   }
 

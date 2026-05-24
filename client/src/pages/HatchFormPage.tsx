@@ -10,6 +10,7 @@ import Option from "@mui/joy/Option";
 import Stack from "@mui/joy/Stack";
 import Alert from "@mui/joy/Alert";
 import Chip from "@mui/joy/Chip";
+import { DateInput } from "../components/DateInput";
 import { api, type PoultryPreset } from "../api/client";
 
 export default function HatchFormPage() {
@@ -26,7 +27,16 @@ export default function HatchFormPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    api.presets().then(setPresets);
+    api.presets().then((list) => {
+      setPresets(list);
+      const chicken = list.find((p) => p.name === "Chicken");
+      if (chicken) {
+        setPresetId(chicken.id);
+        setPoultryLabel(chicken.poultryLabel);
+        setIncubationDays(chicken.incubationDays);
+        setLockdownDay(chicken.lockdownDay);
+      }
+    });
   }, []);
 
   const onPreset = (id: string | null) => {
@@ -117,7 +127,7 @@ export default function HatchFormPage() {
 
       <FormControl required>
         <FormLabel>Set date (day 0)</FormLabel>
-        <Input type="date" value={setDate} onChange={(e) => setSetDate(e.target.value)} />
+        <DateInput value={setDate} onChange={(e) => setSetDate(e.target.value)} />
       </FormControl>
 
       <FormControl>

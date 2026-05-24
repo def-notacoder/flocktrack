@@ -118,7 +118,7 @@ hatchEggsRouter.get("/:eggId", async (req, res, next) => {
         hatch: true,
         incubationLogs: { orderBy: { loggedAt: "desc" } },
         hatchingLogs: { orderBy: { loggedAt: "desc" } },
-        noteLog: { orderBy: { loggedAt: "desc" } },
+        noteLog: { orderBy: { loggedAt: "desc" }, take: 1 },
         hatchedChicken: { select: { id: true, tagNumber: true, name: true } },
       },
     });
@@ -163,7 +163,7 @@ hatchEggsRouter.patch("/:eggId", validate(patchEggSchema), async (req, res, next
         hatch: true,
         incubationLogs: { orderBy: { loggedAt: "desc" } },
         hatchingLogs: { orderBy: { loggedAt: "desc" } },
-        noteLog: { orderBy: { loggedAt: "desc" } },
+        noteLog: { orderBy: { loggedAt: "desc" }, take: 1 },
         hatchedChicken: { select: { id: true, tagNumber: true, name: true } },
       },
     });

@@ -13,6 +13,7 @@ import Input from "@mui/joy/Input";
 import Alert from "@mui/joy/Alert";
 import { api, type HatchEvent } from "../api/client";
 import { LogEditActions } from "./LogEditActions";
+import { DateInput } from "./DateInput";
 import { toDatetimeLocal } from "../lib/datetime";
 
 function eventTypeLabel(type: string) {
@@ -170,7 +171,7 @@ export function HatchLogSection({ hatchId, events, canEdit = true, onChanged }: 
                       <>
                         <FormControl size="sm">
                           <FormLabel>Date & time</FormLabel>
-                          <Input
+                          <DateInput
                             type="datetime-local"
                             value={editOccurredAt}
                             onChange={(e) => setEditOccurredAt(e.target.value)}

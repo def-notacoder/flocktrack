@@ -18,6 +18,7 @@ import { api, type HealthRecord } from "../api/client";
 import { formatWhen } from "./EggLogSection";
 import { LogEditActions } from "./LogEditActions";
 import { LogPhotoField, LogPhotoPreview, useLogPhotoEdit } from "./LogPhotoField";
+import { DateInput } from "./DateInput";
 import { nowDatetimeLocal, toDatetimeLocal } from "../lib/datetime";
 
 const EVENT_TYPES = [
@@ -249,7 +250,7 @@ export function BirdHealthLogSection({
       </FormControl>
       <FormControl size="sm">
         <FormLabel>Date & time</FormLabel>
-        <Input
+        <DateInput
           type="datetime-local"
           value={editObservedOn}
           onChange={(e) => setEditObservedOn(e.target.value)}
@@ -269,7 +270,7 @@ export function BirdHealthLogSection({
       </FormControl>
       <FormControl size="sm">
         <FormLabel>Follow-up date</FormLabel>
-        <Input type="date" value={editFollowUpOn} onChange={(e) => setEditFollowUpOn(e.target.value)} />
+        <DateInput value={editFollowUpOn} onChange={(e) => setEditFollowUpOn(e.target.value)} />
       </FormControl>
       <Checkbox
         label="Resolved"
@@ -317,7 +318,7 @@ export function BirdHealthLogSection({
           </FormControl>
           <FormControl>
             <FormLabel>Date & time</FormLabel>
-            <Input
+            <DateInput
               type="datetime-local"
               value={observedOn}
               onChange={(e) => setObservedOn(e.target.value)}
@@ -341,7 +342,7 @@ export function BirdHealthLogSection({
           </FormControl>
           <FormControl>
             <FormLabel>Follow-up date</FormLabel>
-            <Input type="date" value={followUpOn} onChange={(e) => setFollowUpOn(e.target.value)} />
+            <DateInput value={followUpOn} onChange={(e) => setFollowUpOn(e.target.value)} />
           </FormControl>
           <Checkbox label="Resolved" checked={resolved} onChange={(e) => setResolved(e.target.checked)} />
           <Textarea

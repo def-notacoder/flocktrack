@@ -16,6 +16,7 @@ import { api } from "../api/client";
 import { formatWhen } from "./EggLogSection";
 import { LogEditActions } from "./LogEditActions";
 import { LogPhotoField, LogPhotoPreview, useLogPhotoEdit } from "./LogPhotoField";
+import { DateInput } from "./DateInput";
 import { nowDatetimeLocal, toDatetimeLocal } from "../lib/datetime";
 
 export type IncubationLog = {
@@ -43,7 +44,12 @@ const ASSESSMENTS = [
   "BLOOD_RING",
   "DEAD_EMBRYO",
   "UNKNOWN",
+  "OTHER",
 ] as const;
+
+function assessmentLabel(value: string) {
+  return value.replace(/_/g, " ");
+}
 
 export function EggIncubationSection({
   hatchId,
@@ -144,20 +150,25 @@ export function EggIncubationSection({
             <Select value={assessment} onChange={(_, v) => setAssessment(v!)}>
               {ASSESSMENTS.map((a) => (
                 <Option key={a} value={a}>
-                  {a.replace(/_/g, " ")}
+                  {assessmentLabel(a)}
                 </Option>
               ))}
             </Select>
           </FormControl>
           <FormControl>
             <FormLabel>Date & time</FormLabel>
-            <Input
+            <DateInput
               type="datetime-local"
               value={incLoggedAt}
               onChange={(e) => setIncLoggedAt(e.target.value)}
             />
           </FormControl>
-          <Textarea placeholder="Notes" value={incNotes} onChange={(e) => setIncNotes(e.target.value)} minRows={2} />
+          <Textarea
+            placeholder={assessment === "OTHER" ? "Describe the assessment" : "Notes"}
+            value={incNotes}
+            onChange={(e) => setIncNotes(e.target.value)}
+            minRows={2}
+          />
           <LogPhotoField
             previewUrl={addPhoto.previewUrl}
             onChange={(e) => addPhoto.handlePhotoChange(e, setError)}
@@ -188,21 +199,21 @@ export function EggIncubationSection({
                         <Select value={editAssessment} onChange={(_, v) => setEditAssessment(v!)}>
                           {ASSESSMENTS.map((a) => (
                             <Option key={a} value={a}>
-                              {a.replace(/_/g, " ")}
+                              {assessmentLabel(a)}
                             </Option>
                           ))}
                         </Select>
                       </FormControl>
                       <FormControl size="sm">
                         <FormLabel>Date & time</FormLabel>
-                        <Input
+                        <DateInput
                           type="datetime-local"
                           value={editLoggedAt}
                           onChange={(e) => setEditLoggedAt(e.target.value)}
                         />
                       </FormControl>
                       <Textarea
-                        placeholder="Notes"
+                        placeholder={editAssessment === "OTHER" ? "Describe the assessment" : "Notes"}
                         value={editNotes}
                         onChange={(e) => setEditNotes(e.target.value)}
                         minRows={2}
@@ -219,7 +230,7 @@ export function EggIncubationSection({
                         {formatWhen(l.loggedAt)}
                       </Typography>
                       <Typography level="title-sm">
-                        Day {l.incubationDay} — {l.assessment.replace(/_/g, " ")}
+                        Day {l.incubationDay} — {assessmentLabel(l.assessment)}
                       </Typography>
                       {l.notes && <Typography level="body-sm">{l.notes}</Typography>}
                       <LogPhotoPreview url={l.photoUrl} alt="Candling photo" />

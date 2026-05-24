@@ -58,6 +58,8 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify({ incubationDay }),
       }),
+    patch: (id: string, body: { name: string }) =>
+      request<HatchDetail>(`/hatches/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     addEvent: (id: string, body: { notes: string; eventType?: string; incubationDay?: number }) =>
       request<HatchEvent>(`/hatches/${id}/events`, {
         method: "POST",

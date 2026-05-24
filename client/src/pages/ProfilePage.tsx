@@ -11,6 +11,7 @@ import Button from "@mui/joy/Button";
 import Alert from "@mui/joy/Alert";
 import CircularProgress from "@mui/joy/CircularProgress";
 import { api } from "../api/client";
+import { ProfileRemindersSection } from "../components/Reminders";
 
 export default function ProfilePage() {
   const [ownerName, setOwnerName] = useState("");
@@ -65,14 +66,23 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return <CircularProgress />;
+  if (loading) {
+    return (
+      <Stack spacing={2}>
+        <Typography level="title-lg">Profile</Typography>
+        <CircularProgress />
+        <ProfileRemindersSection />
+      </Stack>
+    );
+  }
 
   return (
-    <Stack spacing={2} component="form" onSubmit={submit}>
+    <Stack spacing={2}>
       <Typography level="title-lg">Profile</Typography>
 
-      <Card variant="outlined">
-        <CardContent>
+      <Stack spacing={2} component="form" onSubmit={submit}>
+        <Card variant="outlined">
+          <CardContent>
           <Stack spacing={2}>
             <FormControl>
               <FormLabel>Your name</FormLabel>
@@ -126,14 +136,17 @@ export default function ProfilePage() {
               />
             </FormControl>
           </Stack>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {error && <Alert color="danger">{error}</Alert>}
-      {saved && <Alert color="success">Profile saved.</Alert>}
-      <Button type="submit" loading={saving} size="lg">
-        Save profile
-      </Button>
+        {error && <Alert color="danger">{error}</Alert>}
+        {saved && <Alert color="success">Profile saved.</Alert>}
+        <Button type="submit" loading={saving} size="lg">
+          Save profile
+        </Button>
+      </Stack>
+
+      <ProfileRemindersSection />
     </Stack>
   );
 }

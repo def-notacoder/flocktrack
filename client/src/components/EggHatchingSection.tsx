@@ -16,6 +16,7 @@ import { api } from "../api/client";
 import { formatWhen } from "./EggLogSection";
 import { LogEditActions } from "./LogEditActions";
 import { LogPhotoField, LogPhotoPreview, useLogPhotoEdit } from "./LogPhotoField";
+import { DateInput } from "./DateInput";
 import { nowDatetimeLocal, toDatetimeLocal } from "../lib/datetime";
 
 export type HatchingLog = {
@@ -132,7 +133,7 @@ export function EggHatchingSection({ hatchId, eggId, logs, canEdit = true, onCha
           </FormControl>
           <FormControl>
             <FormLabel>Date & time</FormLabel>
-            <Input
+            <DateInput
               type="datetime-local"
               value={hLoggedAt}
               onChange={(e) => setHLoggedAt(e.target.value)}
@@ -172,7 +173,7 @@ export function EggHatchingSection({ hatchId, eggId, logs, canEdit = true, onCha
                       </FormControl>
                       <FormControl size="sm">
                         <FormLabel>Date & time</FormLabel>
-                        <Input
+                        <DateInput
                           type="datetime-local"
                           value={editLoggedAt}
                           onChange={(e) => setEditLoggedAt(e.target.value)}

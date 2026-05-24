@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import Card from "@mui/joy/Card";
@@ -13,6 +13,8 @@ import Textarea from "@mui/joy/Textarea";
 import Button from "@mui/joy/Button";
 import Stack from "@mui/joy/Stack";
 import Alert from "@mui/joy/Alert";
+import CircularProgress from "@mui/joy/CircularProgress";
+import { DateInput } from "./DateInput";
 import { api, type Hatch, type Reminder, type ReminderCategory } from "../api/client";
 
 export const REMINDER_CATEGORIES: { value: ReminderCategory; label: string }[] = [
@@ -114,7 +116,7 @@ export function ReminderForm({ onSaved, compact }: ReminderFormProps) {
       </FormControl>
       <FormControl required>
         <FormLabel>Due</FormLabel>
-        <Input type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+        <DateInput type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
       </FormControl>
       {!compact && (
         <>
@@ -155,15 +157,32 @@ type ReminderListProps = {
   reminders: Reminder[];
   onChange: () => void;
   emptyMessage?: string;
+  allowComplete?: boolean;
+  allowUndo?: boolean;
 };
 
-const COLLAPSED_REMINDER_COUNT = 4;
-const EXPANDED_REMINDER_COUNT = 8;
+export const REMINDER_PAGE_SIZE = 4;
 
-export function ReminderList({ reminders, onChange, emptyMessage }: ReminderListProps) {
-  const [expanded, setExpanded] = useState(false);
+export function ReminderList({
+  reminders,
+  onChange,
+  emptyMessage,
+  allowComplete = true,
+  allowUndo = false,
+}: ReminderListProps) {
+  const [visibleCount, setVisibleCount] = useState(REMINDER_PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(REMINDER_PAGE_SIZE);
+  }, [reminders]);
+
   const complete = async (id: string) => {
     await api.reminders.patch(id, { completed: true });
+    onChange();
+  };
+
+  const undoComplete = async (id: string) => {
+    await api.reminders.patch(id, { completed: false });
     onChange();
   };
 
@@ -175,9 +194,8 @@ export function ReminderList({ reminders, onChange, emptyMessage }: ReminderList
     );
   }
 
-  const visibleCount = expanded ? EXPANDED_REMINDER_COUNT : COLLAPSED_REMINDER_COUNT;
   const visibleReminders = reminders.slice(0, visibleCount);
-  const canExpand = reminders.length > COLLAPSED_REMINDER_COUNT;
+  const canShowMore = reminders.length > visibleCount;
 
   return (
     <Stack spacing={1}>
@@ -211,24 +229,85 @@ export function ReminderList({ reminders, onChange, emptyMessage }: ReminderList
                     </>
                   )}
                 </Box>
-                <Button size="sm" variant="soft" color="success" onClick={() => complete(r.id)}>
-                  Done
-                </Button>
+                {allowComplete && !r.completed && (
+                  <Button size="sm" variant="soft" color="success" onClick={() => complete(r.id)}>
+                    Done
+                  </Button>
+                )}
+                {allowUndo && r.completed && (
+                  <Button size="sm" variant="soft" color="neutral" onClick={() => undoComplete(r.id)}>
+                    Undo
+                  </Button>
+                )}
               </Stack>
             </CardContent>
           </Card>
         );
       })}
-      {canExpand && (
+      {canShowMore && (
         <Button
           size="sm"
           variant="plain"
           color="neutral"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => setVisibleCount((count) => count + REMINDER_PAGE_SIZE)}
           sx={{ alignSelf: "flex-start" }}
         >
-          {expanded ? "Show less" : "Show more"}
+          Show more
         </Button>
+      )}
+    </Stack>
+  );
+}
+
+export function ProfileRemindersSection() {
+  const [upcoming, setUpcoming] = useState<Reminder[]>([]);
+  const [completed, setCompleted] = useState<Reminder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(() => {
+    setLoading(true);
+    Promise.all([api.reminders.list(false), api.reminders.list(true)])
+      .then(([open, done]) => {
+        setUpcoming(open);
+        setCompleted(
+          [...done].sort((a, b) => new Date(b.dueAt).getTime() - new Date(a.dueAt).getTime())
+        );
+        setError("");
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load reminders"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(load, [load]);
+
+  return (
+    <Stack spacing={2}>
+      <Typography level="title-md">Reminders</Typography>
+      {error && <Alert color="danger">{error}</Alert>}
+      {loading ? (
+        <CircularProgress size="sm" />
+      ) : (
+        <>
+          <Stack spacing={1}>
+            <Typography level="title-sm">Upcoming</Typography>
+            <ReminderList
+              reminders={upcoming}
+              onChange={load}
+              emptyMessage="No upcoming reminders."
+            />
+          </Stack>
+          <Stack spacing={1}>
+            <Typography level="title-sm">Completed</Typography>
+            <ReminderList
+              reminders={completed}
+              onChange={load}
+              allowComplete={false}
+              allowUndo
+              emptyMessage="No completed reminders."
+            />
+          </Stack>
+        </>
       )}
     </Stack>
   );

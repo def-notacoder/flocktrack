@@ -17,6 +17,7 @@ import DialogTitle from "@mui/joy/DialogTitle";
 import DialogContent from "@mui/joy/DialogContent";
 import DialogActions from "@mui/joy/DialogActions";
 import { PhotoPickerButtons, readImageFileFromInput } from "../components/PhotoPickerButtons";
+import { DateInput } from "../components/DateInput";
 import { api } from "../api/client";
 
 export default function ChickenFormPage() {
@@ -247,7 +248,7 @@ export default function ChickenFormPage() {
       {!isEdit && (
         <FormControl required>
           <FormLabel>Acquired date</FormLabel>
-          <Input type="date" value={acquiredOn} onChange={(e) => setAcquiredOn(e.target.value)} />
+          <DateInput value={acquiredOn} onChange={(e) => setAcquiredOn(e.target.value)} />
         </FormControl>
       )}
       <Textarea placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} minRows={2} />
@@ -264,7 +265,11 @@ export default function ChickenFormPage() {
       <Button type="submit" loading={loading} size="lg">
         {isEdit ? "Save" : "Add to flock"}
       </Button>
-      {isEdit && (
+      {!isEdit ? (
+        <Button component={Link} to="/birds" variant="plain">
+          Cancel
+        </Button>
+      ) : (
         <>
           <Button component={Link} to={`/birds/${id}`} variant="plain">
             Cancel

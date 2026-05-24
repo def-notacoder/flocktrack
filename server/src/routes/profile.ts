@@ -42,7 +42,7 @@ profileRouter.get("/", async (_req, res, next) => {
 
 profileRouter.patch("/", validate(patchSchema), async (req, res, next) => {
   try {
-    const body = (req as ValidatedRequest<typeof patchSchema>).validated.body;
+    const { body } = (req as ValidatedRequest<z.infer<typeof patchSchema>>).validated;
     const profile = await prisma.farmProfile.upsert({
       where: { id: PROFILE_ID },
       create: { id: PROFILE_ID, ...body },

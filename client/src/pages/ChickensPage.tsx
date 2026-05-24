@@ -120,7 +120,7 @@ export default function ChickensPage() {
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
                   <BirdPhoto photoUrl={b.photoUrl} />
                   <Typography fontWeight="lg" sx={{ minWidth: 0 }}>
-                    #{b.tagNumber} {b.name}
+                    {b.name?.trim() || `#${b.tagNumber}`}
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
@@ -133,7 +133,7 @@ export default function ChickensPage() {
                 </Stack>
               </Stack>
               <Typography level="body-sm">
-                {b.poultryLabel} · {b.sex}
+                #{b.tagNumber} · {b.poultryLabel} · {b.sex}
                 {b.colorMarking ? ` · ${b.colorMarking}` : ""}
               </Typography>
               {b.hatchEgg && (

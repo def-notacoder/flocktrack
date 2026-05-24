@@ -66,7 +66,7 @@ export default function ChickenDetailPage() {
             alt={bird.name ? `${bird.name} photo` : `Bird ${bird.tagNumber} photo`}
           />
           <Typography level="h2" sx={{ minWidth: 0 }}>
-            #{bird.tagNumber} {bird.name}
+            {bird.name?.trim() || `#${bird.tagNumber}`}
           </Typography>
         </Stack>
         <Button component={Link} to={`/birds/${id}/edit`} size="sm" variant="outlined" sx={{ flexShrink: 0 }}>
@@ -76,7 +76,7 @@ export default function ChickenDetailPage() {
 
       {bird.colorMarking && <Chip>{bird.colorMarking}</Chip>}
       <Typography level="body-sm">
-        {bird.poultryLabel} · {bird.sex} · {bird.lifeStage}
+        #{bird.tagNumber} · {bird.poultryLabel} · {bird.sex} · {bird.lifeStage}
       </Typography>
 
       {bird.hatch && bird.hatchEgg ? (

@@ -23,15 +23,17 @@ fi
 echo "==> Building and starting stack"
 "${COMPOSE[@]}" up -d --build
 
-echo "==> Waiting for API health"
-for _ in $(seq 1 30); do
-  if curl -fsS "http://127.0.0.1:${PORT:-3001}/api/health" >/dev/null 2>&1; then
-    echo "Deploy complete — app is healthy on port ${PORT:-3001}"
+echo "==> Waiting for app container health"
+# Production compose.yml on the server uses nginx and does not publish app ports to the host.
+for _ in $(seq 1 60); do
+  health="$("${COMPOSE[@]}" ps --format '{{.Health}}' app 2>/dev/null | head -1 || true)"
+  if [ "$health" = "healthy" ]; then
+    echo "Deploy complete — app container is healthy"
     exit 0
   fi
   sleep 2
 done
 
-echo "error: app did not become healthy within 60s" >&2
+echo "error: app did not become healthy within 120s" >&2
 "${COMPOSE[@]}" logs --tail=50 app || true
 exit 1
